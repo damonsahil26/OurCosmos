@@ -1,0 +1,36 @@
+﻿@page "/creategalaxy"
+
+@using Cosmos_ApplicationServices.IServices
+@using Cosmos_DataAccess.DTO
+
+@inject IGalaxyService _galaxyService
+@inject NavigationManager _navManager
+
+<h3>Create Galaxy</h3>
+<div class=col-9>
+    <EditForm Model=Galaxy OnValidSubmit="UpsertGalaxy">
+        <div class="form-group">
+            <label for="input-name">Name</label>
+            <InputText class="form-control" @bind-Value="Galaxy.Name" id="input-name" placeholder="Enter Name of the Galaxy" />
+        </div>
+        <div class="form-group">
+            <label for="input-name">Description</label>
+            <RadzenTextArea class="form-control" Rows=4 @bind-Value="Galaxy.Description" id="input-last-name" placeholder="Enter Description" />
+        </div>
+        <div class="form-group py-2">
+            <button class="btn btn-primary" type="submit" id="btn-comonent">Submit</button>
+            <NavLink href="Galaxy" class="btn btn-danger" id="btn-back">Back to Galaxy</NavLink>
+        </div>
+    </EditForm>
+</div>
+
+
+@code {
+    public GalaxyDTO Galaxy { get; set; } = new GalaxyDTO();
+
+    public async Task UpsertGalaxy()
+    {
+        await _galaxyService.Create(Galaxy);
+        _navManager.NavigateTo("Galaxy");
+    }
+}

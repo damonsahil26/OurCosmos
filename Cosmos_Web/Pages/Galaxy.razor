@@ -1,0 +1,72 @@
+﻿@page "/Galaxy"
+
+@using Cosmos_ApplicationServices.IServices
+@using Cosmos_DataAccess.DTO
+@using Radzen
+@using Radzen.Blazor
+
+@inject IGalaxyService _galaxyService
+@inject NavigationManager _navManager
+
+<h3>Galaxy</h3>
+
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add New Galaxy" Click="@InsertGalaxy" />
+<RadzenDataGrid @ref="GalaxyGrid" AllowFiltering="true" AllowSorting="true" Responsive="true" PageSize="10" AllowPaging="true" ShowPagingSummary="true"
+                Data="@Galaxies" TItem="GalaxyDTO" ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.Or">
+    <Columns>
+        <RadzenDataGridColumn TItem="GalaxyDTO" Property="Id" Filterable="false" Title="ID" Width="70px" />
+        <RadzenDataGridColumn TItem="GalaxyDTO" Property="Name" Title="Name" Width="70px" />
+        <RadzenDataGridColumn TItem="GalaxyDTO" Property="Description" Title="Description" Width="140px" />
+        <RadzenDataGridColumn TItem="GalaxyDTO" Context="Galaxy" Title="Edit" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+            <Template Context="Galaxy">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(Galaxy))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="GalaxyDTO" Context="GalaxyDTO" Title="Delete" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
+            <Template Context="GalaxyDTO">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(GalaxyDTO))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="GalaxyDTO">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(GalaxyDTO))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    RadzenDataGrid<GalaxyDTO> GalaxyGrid = new();
+    public IEnumerable<GalaxyDTO> Galaxies { get; set; } = new List<GalaxyDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Galaxies = await _galaxyService.GetAll();
+    }
+
+    private void InsertGalaxy()
+    {
+        _navManager.NavigateTo("creategalaxy");
+    }
+
+    private async Task DeleteRow(GalaxyDTO galaxy)
+    {
+        if (Galaxies.Contains(galaxy))
+        {
+            await _galaxyService.DeleteById(galaxy.Id);
+            _navManager.NavigateTo("galaxy", true);
+        }
+    }
+
+    private void EditRow(GalaxyDTO galaxy)
+    {
+        _navManager.NavigateTo($"updategalaxy/{galaxy.Id}");
+    }
+
+    void CancelEdit(GalaxyDTO galaxy)
+    {
+        GalaxyGrid.CancelEditRow(galaxy);
+    }
+
+}
