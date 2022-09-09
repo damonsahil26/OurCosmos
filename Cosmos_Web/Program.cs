@@ -7,6 +7,7 @@ using Cosmos_Web.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,6 +22,13 @@ options.UseCosmos(builder.Configuration["AccountEndPoint"],
 builder.Configuration["AccountKey"],
 builder.Configuration["DbName"]
 ));
+builder.Services.AddHttpClient("Cosmos", httpClient =>
+{
+    httpClient.BaseAddress = new Uri("https://cosmos-api-service.azurewebsites.net/");
+
+    httpClient.DefaultRequestHeaders.Add(
+        HeaderNames.Accept, "application/json");
+});
 
 var app = builder.Build();
 

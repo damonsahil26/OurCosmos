@@ -62,3 +62,20 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+.page-background-class {
+    background-image: url(../images/space_bg_2.jpg);
+}
+
+.bg-class {
+    height: 100vh;
+}
+
+h3 {
+    color: white;
+}
+
+label {
+    color: white;
+}
+

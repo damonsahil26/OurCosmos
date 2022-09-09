@@ -1,0 +1,91 @@
+﻿@page "/Planet"
+
+@using Cosmos_ApplicationServices.IServices
+@using Cosmos_DataAccess.DTO
+@using Newtonsoft.Json
+@using Radzen
+@using Radzen.Blazor
+@using System.Text.Json
+
+@inject IHttpClientFactory _httpClientFactory
+@inject NavigationManager _navManager
+
+<h3>Planet</h3>
+
+<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add New Planet" Click="@InsertPlanet" />
+<RadzenDataGrid @ref="PlanetGrid" AllowFiltering="true" AllowSorting="true" Responsive="true" PageSize="10" AllowPaging="true" ShowPagingSummary="true"
+                Data="@Planets" TItem="PlanetDTO" ColumnWidth="150px" LogicalFilterOperator="LogicalFilterOperator.Or">
+    <Columns>
+        <RadzenDataGridColumn TItem="PlanetDTO" Property="Id" Filterable="false" Title="ID" Width="70px" />
+        <RadzenDataGridColumn TItem="PlanetDTO" Property="Name" Title="Name" Width="70px" />
+        <RadzenDataGridColumn TItem="PlanetDTO" Property="Description" Title="Description" Width="140px" />
+        <RadzenDataGridColumn TItem="PlanetDTO" Context="Planet" Title="Edit" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="120px">
+            <Template Context="Planet">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Class="m-1" Click="@(args => EditRow(Planet))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="PlanetDTO" Context="PlanetDTO" Title="Delete" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="60px">
+            <Template Context="PlanetDTO">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(PlanetDTO))" @onclick:stopPropagation="true">
+                </RadzenButton>
+            </Template>
+            <EditTemplate Context="PlanetDTO">
+                <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="delete" Size="ButtonSize.Small" Class="m-1" Click="@(args => DeleteRow(PlanetDTO))">
+                </RadzenButton>
+            </EditTemplate>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    RadzenDataGrid<PlanetDTO> PlanetGrid = new();
+    public IEnumerable<PlanetDTO> Planets { get; set; } = new List<PlanetDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = _httpClientFactory.CreateClient("Cosmos");
+        var httpResponseMessage = await httpClient.GetAsync(
+            "Planet");
+
+        if (httpResponseMessage.IsSuccessStatusCode)
+        {
+            var responseContent =
+               await httpResponseMessage.Content.ReadAsStringAsync();
+
+            var response = JsonConvert.DeserializeObject<List<PlanetDTO>>(responseContent);
+
+            Planets = response != null ? response : new List<PlanetDTO>();
+        }
+    }
+
+    private void InsertPlanet()
+    {
+        _navManager.NavigateTo("createplanet");
+    }
+
+    private async Task DeleteRow(PlanetDTO planet)
+    {
+        if (Planets.Contains(planet))
+        {
+            var httpClient = _httpClientFactory.CreateClient("Cosmos");
+            var httpResponseMessage = await httpClient.DeleteAsync(
+                $"Planet/id?id={planet.Id}");
+
+            httpResponseMessage.EnsureSuccessStatusCode();
+
+            _navManager.NavigateTo("planet", true);
+        }
+    }
+
+    private void EditRow(PlanetDTO planet)
+    {
+        _navManager.NavigateTo($"updateplanet/{planet.Id}");
+    }
+
+    void CancelEdit(PlanetDTO planet)
+    {
+        PlanetGrid.CancelEditRow(planet);
+    }
+
+}
